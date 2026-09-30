@@ -1,0 +1,841 @@
+{
+  "Uuid": "0937f79705a05e3ca1a9985373ee13c3",
+  "IsCustomNode": false,
+  "Description": "EC2 MBIM301 · Rutina QA/QC: audita y corrige parámetros requeridos y nomenclatura de tipos según reglas en CSV, con reporte trazable y resaltado en vista.",
+  "Name": "QAQC_Parametros_Nomenclatura",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "0723afde01885782a0559ef208a325f9",
+      "Name": "1 · Archivo de reglas (CSV)",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "C:\\EC2-QAQC-Dynamo\\config\\reglas_qaqc.csv",
+      "Description": "Archivo CSV de reglas QA/QC"
+    },
+    {
+      "Id": "18dd0421699e5bbebbc1381c77a9a15e",
+      "Name": "2 · Escribir en el modelo (False = solo auditar)",
+      "Type": "boolean",
+      "Type2": "boolean",
+      "Value": "false",
+      "Description": "False = solo auditar. True = escribir valores en el modelo"
+    },
+    {
+      "Id": "592782ffe2a25a4a9807f31094d5b2ac",
+      "Name": "3 · Resaltar en vista activa",
+      "Type": "boolean",
+      "Type2": "boolean",
+      "Value": "true",
+      "Description": "Colorear resultados en la vista activa"
+    },
+    {
+      "Id": "dd0f435ce4bf5e8dbedff51eba086bdb",
+      "Name": "4 · Carpeta de reportes",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "C:\\EC2-QAQC-Dynamo\\reportes",
+      "Description": "Carpeta donde se guardan los reportes CSV"
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "bde8095280fb517fa7d4a6a52cd6c5cb",
+      "Name": "RESULTADO",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Visualiza la salida de un nodo"
+    },
+    {
+      "Id": "3115b83aa97050daa2d1f9ee0d01a066",
+      "Name": "Cumplimiento por regla",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Visualiza la salida de un nodo"
+    },
+    {
+      "Id": "a861c388b7ef5171bd3b92bce1c006f0",
+      "Name": "Reportes generados",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Visualiza la salida de un nodo"
+    }
+  ],
+  "Nodes": [
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "HintPath": "C:\\EC2-QAQC-Dynamo\\config\\reglas_qaqc.csv",
+      "InputValue": "C:\\EC2-QAQC-Dynamo\\config\\reglas_qaqc.csv",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "d11d8a98337e5bc18eae37aa6e025955",
+          "Name": "",
+          "Description": "Ruta del archivo",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Archivo CSV de reglas QA/QC",
+      "Id": "0723afde01885782a0559ef208a325f9",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "768228fc4f975116b99a1a7a225e3e48",
+          "Name": "",
+          "Description": "Booleano",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "False = solo auditar. True = escribir valores en el modelo",
+      "Id": "18dd0421699e5bbebbc1381c77a9a15e",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b3cd7a5ca25556109b678bc4727c19a7",
+          "Name": "",
+          "Description": "Booleano",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Colorear resultados en la vista activa",
+      "Id": "592782ffe2a25a4a9807f31094d5b2ac",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Directory, CoreNodeModels",
+      "HintPath": "C:\\EC2-QAQC-Dynamo\\reportes",
+      "InputValue": "C:\\EC2-QAQC-Dynamo\\reportes",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ba10667dd73a5deca035c8ecf52a9e09",
+          "Name": "",
+          "Description": "Ruta de la carpeta",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Carpeta donde se guardan los reportes CSV",
+      "Id": "dd0f435ce4bf5e8dbedff51eba086bdb",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "# -*- coding: utf-8 -*-\n\"\"\"\nNODO 01 - LEER Y VALIDAR REGLAS\n===============================\nRutina QA/QC de parámetros y nomenclatura - EC2 MBIM301\n\nEntradas\n    IN[0]  ruta del archivo CSV de reglas (str)\n\nSalida\n    OUT = [reglas, errores]\n        reglas  : list[list[str]]  una fila por regla válida, en el orden de COLUMNAS\n        errores : list[str]        filas rechazadas y el motivo\n\nEste nodo NO toca el modelo de Revit. Si una regla está mal escrita\n(columna vacía, operador desconocido, expresión regular inválida...)\nse descarta aquí y se reporta, en lugar de fallar a mitad de la auditoría.\n\nCompatible con los motores CPython3 / PythonNet3 (Dynamo 2.13+ / 3.x).\n\"\"\"\nimport csv\nimport io\nimport re\n\nCOLUMNAS = [\n    \"id\", \"tipo\", \"categoria\", \"parametro\", \"operador\", \"valor\",\n    \"filtro_parametro\", \"filtro_operador\", \"filtro_valor\",\n    \"sobrescribir\", \"severidad\", \"descripcion\",\n]\n\n# Operadores permitidos por tipo de regla\nOPERADORES = {\n    \"VERIFICAR\": (\"NO_VACIO\", \"IGUAL\", \"EN_LISTA\", \"REGEX\"),\n    \"ASIGNAR\": (\"FIJAR\",),\n}\nOPERADORES_FILTRO = (\"\", \"CONTIENE\", \"IGUAL\", \"EN_LISTA\", \"REGEX\", \"NO_VACIO\")\nSEVERIDADES = (\"ALTA\", \"MEDIA\", \"BAJA\")\n\n\ndef leer_texto(ruta):\n    \"\"\"Lee el CSV aceptando UTF-8 (con o sin BOM) y ANSI/Windows-1252,\n    que es lo que guarda Excel en Windows en español.\"\"\"\n    try:\n        with io.open(ruta, \"r\", encoding=\"utf-8-sig\") as f:\n            return f.read()\n    except UnicodeDecodeError:\n        with io.open(ruta, \"r\", encoding=\"cp1252\") as f:\n            return f.read()\n\n\ndef _regex_valida(patron):\n    try:\n        re.compile(patron)\n        return True\n    except re.error:\n        return False\n\n\ndef validar_regla(r, ids_vistos):\n    \"\"\"Devuelve None si la regla es válida o un texto con el problema.\"\"\"\n    if not r[\"id\"]:\n        return \"falta el id\"\n    if r[\"id\"] in ids_vistos:\n        return \"id duplicado\"\n    if r[\"tipo\"] not in OPERADORES:\n        return \"tipo '%s' no válido (use VERIFICAR o ASIGNAR)\" % r[\"tipo\"]\n    if not r[\"categoria\"].startswith(\"OST_\"):\n        return \"categoría '%s' debe ser un BuiltInCategory (ej. OST_Walls)\" % r[\"categoria\"]\n    if not r[\"parametro\"]:\n        return \"falta el parámetro\"\n    if r[\"operador\"] not in OPERADORES[r[\"tipo\"]]:\n        return \"operador '%s' no válido para %s (use %s)\" % (\n            r[\"operador\"], r[\"tipo\"], \", \".join(OPERADORES[r[\"tipo\"]]))\n    if r[\"operador\"] != \"NO_VACIO\" and not r[\"valor\"]:\n        return \"falta el valor\"\n    if r[\"operador\"] == \"REGEX\" and not _regex_valida(r[\"valor\"]):\n        return \"expresión regular inválida en 'valor'\"\n    if r[\"tipo\"] == \"ASIGNAR\" and r[\"parametro\"].upper() == \"TIPO:NOMBRE\":\n        return \"no se permite renombrar tipos con ASIGNAR\"\n    if r[\"filtro_operador\"] not in OPERADORES_FILTRO:\n        return \"filtro_operador '%s' no válido\" % r[\"filtro_operador\"]\n    if bool(r[\"filtro_operador\"]) != bool(r[\"filtro_parametro\"]):\n        return \"filtro incompleto: indique filtro_parametro y filtro_operador juntos\"\n    if r[\"filtro_operador\"] not in (\"\", \"NO_VACIO\") and not r[\"filtro_valor\"]:\n        return \"falta filtro_valor\"\n    if r[\"filtro_operador\"] == \"REGEX\" and not _regex_valida(r[\"filtro_valor\"]):\n        return \"expresión regular inválida en 'filtro_valor'\"\n    if r[\"severidad\"] not in SEVERIDADES:\n        return \"severidad '%s' no válida (ALTA, MEDIA o BAJA)\" % r[\"severidad\"]\n    if r[\"sobrescribir\"] not in (\"SI\", \"NO\"):\n        return \"sobrescribir debe ser SI o NO\"\n    return None\n\n\ndef parsear_reglas(texto):\n    \"\"\"Convierte el texto del CSV en (reglas, errores).\"\"\"\n    lineas = [l for l in texto.splitlines()\n              if l.strip() and not l.lstrip().startswith(\"#\")]\n    if not lineas:\n        return [], [\"El archivo de reglas está vacío.\"]\n\n    # Excel en configuración regional Perú/España separa con ';'\n    delim = \";\" if lineas[0].count(\";\") >= lineas[0].count(\",\") else \",\"\n    filas = list(csv.reader(lineas, delimiter=delim))\n\n    encabezado = [c.strip().lower() for c in filas[0]]\n    faltan = [c for c in COLUMNAS if c not in encabezado]\n    if faltan:\n        return [], [\"Faltan columnas en el encabezado: \" + \", \".join(faltan)]\n    idx = dict((c, encabezado.index(c)) for c in COLUMNAS)\n\n    reglas, errores, ids = [], [], set()\n    for n, fila in enumerate(filas[1:], start=2):\n        fila = fila + [\"\"] * (len(encabezado) - len(fila))\n        r = dict((c, fila[idx[c]].strip()) for c in COLUMNAS)\n        for c in (\"tipo\", \"operador\", \"filtro_operador\", \"severidad\", \"sobrescribir\"):\n            r[c] = r[c].upper()\n        r[\"severidad\"] = r[\"severidad\"] or \"MEDIA\"\n        r[\"sobrescribir\"] = (r[\"sobrescribir\"] or \"NO\").replace(\"SÍ\", \"SI\")\n\n        problema = validar_regla(r, ids)\n        if problema:\n            errores.append(\"Fila %d (%s): %s\" % (n, r[\"id\"] or \"sin id\", problema))\n            continue\n        ids.add(r[\"id\"])\n        reglas.append([r[c] for c in COLUMNAS])\n\n    if not reglas:\n        errores.append(\"No quedó ninguna regla válida.\")\n    return reglas, errores\n\n\ndef ejecutar(ruta):\n    if not ruta:\n        return [[], [\"No se indicó el archivo de reglas.\"]]\n    try:\n        texto = leer_texto(str(ruta))\n    except (IOError, OSError) as ex:\n        return [[], [\"No se pudo leer el archivo de reglas: %s\" % ex]]\n    reglas, errores = parsear_reglas(texto)\n    return [reglas, errores]\n\n\n# --- Punto de entrada del nodo Python de Dynamo --------------------------\nif \"IN\" in globals():\n    OUT = ejecutar(IN[0])  # noqa: F821  (IN lo define Dynamo)\n",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "8574527ee8e05ba582bc90ab804ddac1",
+          "Name": "IN[0]",
+          "Description": "Ruta CSV de reglas",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "6a076fbf092055ae8c327af228f39bac",
+          "Name": "OUT",
+          "Description": "Resultado del script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Ejecuta un script de Python incrustado.",
+      "Id": "352f4f6a6571559aa7f1a4df8d769754",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "# -*- coding: utf-8 -*-\n\"\"\"\nNODO 02 - AUDITAR Y CORREGIR (Revit API)\n========================================\nRutina QA/QC de parámetros y nomenclatura - EC2 MBIM301\n\nEntradas\n    IN[0]  salida completa del NODO 01: [reglas, errores]\n    IN[1]  escribir (bool)  False = solo auditar, NO modifica el modelo\n    IN[2]  resaltar (bool)  True  = colorea en la vista activa:\n                                     rojo = falla / pendiente / error\n                                     ámbar = omitido (grupo, solo lectura, prestado)\n                                     sin color = cumple\n\nSalida\n    OUT = [tabla, resumen, mensaje, proyecto]\n        tabla    : list[list]  detalle elemento por regla (1.ª fila = encabezado)\n        resumen  : list[list]  cumplimiento por regla (1.ª fila = encabezado)\n        mensaje  : str         resumen legible para el Watch / Dynamo Player\n        proyecto : str         título del modelo (para nombrar el reporte)\n\nResultados posibles por fila\n    OK         cumple la regla\n    CORREGIDO  la rutina escribió el valor (solo con escribir = True)\n    PENDIENTE  no cumple y se corregiría con escribir = True\n    FALLA      no cumple una regla de VERIFICAR\n    OMITIDO    no se pudo escribir por una condición controlada\n    ERROR      excepción de la API o parámetro inexistente\n    INFO       la categoría no tiene elementos en el modelo\n\nCompatible con los motores CPython3 / PythonNet3 (Revit 2022-2026).\n\"\"\"\nimport re\n\nimport clr\nclr.AddReference(\"RevitAPI\")\nclr.AddReference(\"RevitServices\")\nimport Autodesk.Revit.DB as DB  # noqa: E402\nfrom RevitServices.Persistence import DocumentManager  # noqa: E402\nfrom RevitServices.Transactions import TransactionManager  # noqa: E402\n\nCOLUMNAS_REGLA = [\n    \"id\", \"tipo\", \"categoria\", \"parametro\", \"operador\", \"valor\",\n    \"filtro_parametro\", \"filtro_operador\", \"filtro_valor\",\n    \"sobrescribir\", \"severidad\", \"descripcion\",\n]\nENCABEZADO = [\n    \"regla_id\", \"severidad\", \"categoria\", \"element_id\", \"unique_id\",\n    \"familia_tipo\", \"parametro\", \"origen\", \"valor_actual\", \"valor_esperado\",\n    \"resultado\", \"detalle\",\n]\nESTADOS = [\"OK\", \"CORREGIDO\", \"PENDIENTE\", \"FALLA\", \"OMITIDO\", \"ERROR\"]\nROJO = (\"PENDIENTE\", \"FALLA\", \"ERROR\")\nAMBAR = (\"OMITIDO\",)\n\n\n# ---------------------------------------------------------------------------\n# Lógica pura (sin Revit) - probada con pytest en /tests\n# ---------------------------------------------------------------------------\ndef cumple(valor, operador, esperado):\n    \"\"\"Evalúa un valor (texto) contra un operador de la regla.\"\"\"\n    valor = (valor or \"\").strip()\n    esperado = (esperado or \"\").strip()\n    op = (operador or \"\").upper()\n    if op == \"NO_VACIO\":\n        return valor != \"\"\n    if op == \"IGUAL\":\n        return valor.lower() == esperado.lower()\n    if op == \"CONTIENE\":\n        return esperado.lower() in valor.lower()\n    if op == \"EN_LISTA\":\n        return valor.lower() in [x.strip().lower() for x in esperado.split(\"|\") if x.strip()]\n    if op == \"REGEX\":\n        return re.search(esperado, valor) is not None\n    raise ValueError(\"Operador no soportado: %s\" % operador)\n\n\ndef resumir(filas):\n    \"\"\"Tabla de cumplimiento por regla + fila TOTAL.\"\"\"\n    orden, conteo, desc = [], {}, {}\n    for f in filas:\n        rid, res = f[0], f[10]\n        if rid not in conteo:\n            orden.append(rid)\n            conteo[rid] = dict((e, 0) for e in ESTADOS)\n        if res in conteo[rid]:\n            conteo[rid][res] += 1\n    encabezado = [\"regla_id\", \"evaluados\"] + ESTADOS + [\"cumplimiento_%\"]\n    tabla = [encabezado]\n    total = dict((e, 0) for e in ESTADOS)\n    for rid in orden:\n        c = conteo[rid]\n        n = sum(c.values())\n        for e in ESTADOS:\n            total[e] += c[e]\n        tabla.append([rid, n] + [c[e] for e in ESTADOS] + [_pct(c, n)])\n    n_total = sum(total.values())\n    tabla.append([\"TOTAL\", n_total] + [total[e] for e in ESTADOS] + [_pct(total, n_total)])\n    return tabla\n\n\ndef _pct(c, n):\n    if n == 0:\n        return \"\"\n    return round(100.0 * (c[\"OK\"] + c[\"CORREGIDO\"]) / n, 1)\n\n\n# ---------------------------------------------------------------------------\n# Utilidades de Revit API\n# ---------------------------------------------------------------------------\ndef id_entero(element_id):\n    \"\"\"ElementId -> int. Revit 2024+ usa .Value; versiones previas .IntegerValue.\"\"\"\n    try:\n        return int(element_id.Value)\n    except AttributeError:\n        return int(element_id.IntegerValue)\n\n\ndef nombre_de_tipo(tipo):\n    \"\"\"Nombre del tipo sin depender de .Name (falla en CPython3 con FamilySymbol).\"\"\"\n    if tipo is None:\n        return \"\"\n    for nombre_bip in (\"SYMBOL_NAME_PARAM\", \"ALL_MODEL_TYPE_NAME\"):\n        bip = getattr(DB.BuiltInParameter, nombre_bip, None)\n        if bip is None:\n            continue\n        p = tipo.get_Parameter(bip)\n        if p is not None and p.HasValue:\n            s = p.AsString()\n            if s:\n                return s\n    try:\n        return tipo.Name\n    except Exception:\n        return \"\"\n\n\ndef familia_y_tipo(tipo):\n    nombre = nombre_de_tipo(tipo)\n    try:\n        familia = tipo.FamilyName if tipo is not None else \"\"\n    except Exception:\n        familia = \"\"\n    return \"%s: %s\" % (familia, nombre) if familia else nombre\n\n\ndef valor_texto(p):\n    \"\"\"Valor del parámetro como texto, sea String, Integer, Double o ElementId.\"\"\"\n    if p is None or not p.HasValue:\n        return \"\"\n    st = p.StorageType\n    if st == DB.StorageType.String:\n        return p.AsString() or \"\"\n    if st == DB.StorageType.ElementId:\n        if p.AsElementId() == DB.ElementId.InvalidElementId:\n            return \"\"\n        return p.AsValueString() or \"\"\n    v = p.AsValueString()\n    if v:\n        return v\n    if st == DB.StorageType.Integer:\n        return str(p.AsInteger())\n    if st == DB.StorageType.Double:\n        return str(p.AsDouble())\n    return \"\"\n\n\ndef fijar_valor(p, texto):\n    \"\"\"Escribe respetando el tipo de almacenamiento. Devuelve True si Revit lo aceptó.\"\"\"\n    st = p.StorageType\n    if st == DB.StorageType.String:\n        return bool(p.Set(texto))\n    if st == DB.StorageType.Integer:\n        return bool(p.Set(int(texto)))\n    if st == DB.StorageType.Double:\n        # SetValueString interpreta el texto en las unidades del proyecto\n        return bool(p.SetValueString(texto))\n    return False  # ElementId: no se asigna por texto\n\n\ndef resolver_lector(spec):\n    \"\"\"Convierte 'BIP:FIRE_RATING' / 'TIPO:NOMBRE' / 'Nombre visible' en una función.\n    Los BuiltInParameter no dependen del idioma de Revit; los nombres visibles sí.\"\"\"\n    s = spec.strip()\n    if s.upper() == \"TIPO:NOMBRE\":\n        return \"TIPO:NOMBRE\"\n    if s.upper().startswith(\"BIP:\"):\n        bip = getattr(DB.BuiltInParameter, s[4:].strip(), None)\n        if bip is None:\n            raise ValueError(\"BuiltInParameter desconocido: %s\" % s)\n        return lambda e: e.get_Parameter(bip)\n    return lambda e: e.LookupParameter(s)\n\n\ndef buscar_parametro(el, tipo, lector):\n    \"\"\"Busca primero en la instancia y luego en el tipo.\n    Devuelve (parametro, origen, valor_texto, existe).\"\"\"\n    if lector == \"TIPO:NOMBRE\":\n        return None, \"tipo\", nombre_de_tipo(tipo), True\n    for origen, e in ((\"instancia\", el), (\"tipo\", tipo)):\n        if e is None:\n            continue\n        p = lector(e)\n        if p is not None:\n            return p, origen, valor_texto(p), True\n    return None, \"\", \"\", False\n\n\ndef prestado_por_otro(doc, elemento):\n    \"\"\"True si en un modelo colaborativo el elemento lo tiene otro usuario\n    o está desactualizado respecto al central (escribir generaría conflicto).\"\"\"\n    if not doc.IsWorkshared:\n        return False\n    try:\n        if DB.WorksharingUtils.GetCheckoutStatus(doc, elemento.Id) == DB.CheckoutStatus.OwnedByOtherUser:\n            return True\n        estado = DB.WorksharingUtils.GetModelUpdatesStatus(doc, elemento.Id)\n        return estado == DB.ModelUpdatesStatus.UpdatedInCentral\n    except Exception:\n        return False\n\n\n# ---------------------------------------------------------------------------\n# Motor de reglas\n# ---------------------------------------------------------------------------\nclass Auditoria(object):\n    def __init__(self, doc, escribir):\n        self.doc = doc\n        self.escribir = escribir\n        self.filas = []\n        self.estado_elemento = {}   # id_int -> (ElementId, peor estado)\n        self.tipos_escritos = {}    # (regla_id, id_tipo) -> valor escrito\n\n    def fila(self, r, el=None, tipo_txt=\"\", origen=\"\", actual=\"\", esperado=\"\",\n             resultado=\"OK\", detalle=\"\"):\n        eid, uid = \"\", \"\"\n        if el is not None:\n            eid = id_entero(el.Id)\n            uid = el.UniqueId\n            self._marcar(el.Id, eid, resultado)\n        self.filas.append([r[\"id\"], r[\"severidad\"], r[\"categoria\"], eid, uid, tipo_txt,\n                           r[\"parametro\"], origen, actual, esperado, resultado, detalle])\n\n    def _marcar(self, element_id, eid, resultado):\n        previo = self.estado_elemento.get(eid)\n        rango = {\"OK\": 0, \"CORREGIDO\": 0, \"INFO\": 0, \"OMITIDO\": 1}\n        if previo is None or rango.get(resultado, 2) > rango.get(previo[1], 2):\n            self.estado_elemento[eid] = (element_id, resultado)\n\n    def procesar(self, r):\n        bic = getattr(DB.BuiltInCategory, r[\"categoria\"], None)\n        if bic is None:\n            self.fila(r, resultado=\"ERROR\", detalle=\"Categoría no existe en esta versión de Revit\")\n            return\n        try:\n            lector = resolver_lector(r[\"parametro\"])\n            lector_filtro = resolver_lector(r[\"filtro_parametro\"]) if r[\"filtro_parametro\"] else None\n        except ValueError as ex:\n            self.fila(r, resultado=\"ERROR\", detalle=str(ex))\n            return\n\n        elementos = list(DB.FilteredElementCollector(self.doc).OfCategory(bic)\n                         .WhereElementIsNotElementType().ToElements())\n        evaluados = 0\n        for el in elementos:\n            try:\n                tipo = self.doc.GetElement(el.GetTypeId())\n                if lector_filtro is not None:\n                    _, _, v_filtro, existe = buscar_parametro(el, tipo, lector_filtro)\n                    if not existe or not cumple(v_filtro, r[\"filtro_operador\"], r[\"filtro_valor\"]):\n                        continue\n                evaluados += 1\n                if r[\"tipo\"] == \"VERIFICAR\":\n                    self._verificar(r, el, tipo, lector)\n                else:\n                    self._asignar(r, el, tipo, lector)\n            except Exception as ex:  # una excepción no detiene la auditoría\n                self.fila(r, el, resultado=\"ERROR\", detalle=\"Excepción: %s\" % ex)\n\n        if evaluados == 0:\n            detalle = (\"Ningún elemento cumple el filtro\" if lector_filtro is not None\n                       else \"La categoría no tiene elementos en el modelo\")\n            self.fila(r, resultado=\"INFO\", detalle=detalle)\n\n    def _verificar(self, r, el, tipo, lector):\n        p, origen, actual, existe = buscar_parametro(el, tipo, lector)\n        tipo_txt = familia_y_tipo(tipo)\n        esperado = r[\"valor\"] or \"(no vacío)\"\n        if not existe:\n            self.fila(r, el, tipo_txt, \"\", \"\", esperado, \"ERROR\",\n                      \"Parámetro inexistente en instancia y tipo\")\n        elif cumple(actual, r[\"operador\"], r[\"valor\"]):\n            self.fila(r, el, tipo_txt, origen, actual, esperado, \"OK\")\n        else:\n            self.fila(r, el, tipo_txt, origen, actual, esperado, \"FALLA\", r[\"descripcion\"])\n\n    def _asignar(self, r, el, tipo, lector):\n        p, origen, actual, existe = buscar_parametro(el, tipo, lector)\n        tipo_txt = familia_y_tipo(tipo)\n        nuevo = r[\"valor\"]\n        f = lambda res, det=\"\": self.fila(r, el, tipo_txt, origen, actual, nuevo, res, det)\n\n        if not existe:\n            return f(\"ERROR\", \"Parámetro inexistente en instancia y tipo\")\n        dueno = el if origen == \"instancia\" else tipo\n        clave_tipo = (r[\"id\"], id_entero(tipo.Id)) if origen == \"tipo\" and tipo is not None else None\n\n        if clave_tipo in self.tipos_escritos:\n            return f(\"CORREGIDO\", \"Asignado a nivel de tipo (afecta a todas sus instancias)\")\n        if actual.strip() and r[\"sobrescribir\"] == \"NO\":\n            return f(\"OK\", \"Ya tenía valor; no se sobrescribe\")\n        if actual.strip() == nuevo.strip():\n            return f(\"OK\")\n        if not self.escribir:\n            return f(\"PENDIENTE\", \"Se asignaría '%s' (modo auditoría)\" % nuevo)\n        if p.IsReadOnly:\n            return f(\"OMITIDO\", \"Parámetro de solo lectura\")\n        if origen == \"instancia\" and el.GroupId != DB.ElementId.InvalidElementId:\n            return f(\"OMITIDO\", \"Elemento dentro de un grupo: editar el grupo manualmente\")\n        if prestado_por_otro(self.doc, dueno):\n            return f(\"OMITIDO\", \"Elemento tomado por otro usuario o desactualizado (sincronizar)\")\n        try:\n            ok = fijar_valor(p, nuevo)\n        except Exception as ex:\n            return f(\"ERROR\", \"Revit rechazó el valor: %s\" % ex)\n        if not ok:\n            return f(\"ERROR\", \"Revit rechazó el valor (tipo de dato incompatible)\")\n        if clave_tipo is not None:\n            self.tipos_escritos[clave_tipo] = nuevo\n        f(\"CORREGIDO\", \"Valor asignado\" + (\" al tipo\" if origen == \"tipo\" else \"\"))\n\n    def resaltar(self):\n        \"\"\"Colorea el resultado en la vista activa. Devuelve un texto de estado.\"\"\"\n        vista = self.doc.ActiveView\n        if vista is None or not vista.AreGraphicsOverridesAllowed():\n            return \"Vista activa no admite modificaciones gráficas (plantilla o tipo de vista)\"\n        solido = None\n        for fp in DB.FilteredElementCollector(self.doc).OfClass(DB.FillPatternElement):\n            if fp.GetFillPattern().IsSolidFill:\n                solido = fp.Id\n                break\n\n        def ogs(r, g, b):\n            o = DB.OverrideGraphicSettings()\n            color = DB.Color(r, g, b)\n            o.SetProjectionLineColor(color)\n            if solido is not None:\n                o.SetSurfaceForegroundPatternId(solido)\n                o.SetSurfaceForegroundPatternColor(color)\n            return o\n\n        rojo, ambar, limpio = ogs(220, 40, 40), ogs(240, 160, 0), DB.OverrideGraphicSettings()\n        pintados, fallidos = 0, 0\n        for element_id, estado in self.estado_elemento.values():\n            o = rojo if estado in ROJO else ambar if estado in AMBAR else limpio\n            try:\n                vista.SetElementOverrides(element_id, o)\n                pintados += 1\n            except Exception:\n                fallidos += 1\n        return \"Vista '%s': %d elementos coloreados%s\" % (\n            vista.Name, pintados, (\", %d no admitidos\" % fallidos) if fallidos else \"\")\n\n\ndef ejecutar(salida_nodo01, escribir, resaltar):\n    reglas_raw, errores_reglas = [], []\n    try:\n        salida_nodo01 = list(salida_nodo01 or [])  # tolera listas .NET de Dynamo\n        if len(salida_nodo01) == 2:\n            reglas_raw = [list(f) for f in (salida_nodo01[0] or [])]\n            errores_reglas = [str(e) for e in (salida_nodo01[1] or [])]\n    except TypeError:\n        errores_reglas = [\"La entrada IN[0] no es la salida del NODO 01\"]\n    reglas = [dict(zip(COLUMNAS_REGLA, fila)) for fila in reglas_raw if len(fila) == len(COLUMNAS_REGLA)]\n    if not reglas:\n        msg = (\"SIN REGLAS VÁLIDAS: no se auditó el modelo ni se generó reporte.\\n\"\n               \"Motivo: \" + (\" | \".join(errores_reglas) or \"el NODO 01 no devolvió reglas\") + \"\\n\"\n               \"Verifique la ruta del archivo de reglas en el grupo 1 · ENTRADAS.\")\n        return [[ENCABEZADO], resumir([]), msg, \"\"]\n\n    doc = DocumentManager.Instance.CurrentDBDocument\n    escribir, resaltar = bool(escribir), bool(resaltar)\n    auditoria = Auditoria(doc, escribir)\n    estado_vista = \"\"\n\n    necesita_transaccion = escribir or resaltar\n    if necesita_transaccion:\n        TransactionManager.Instance.EnsureInTransaction(doc)\n    try:\n        for r in reglas:\n            auditoria.procesar(r)\n        if resaltar:\n            estado_vista = auditoria.resaltar()\n    finally:\n        if necesita_transaccion:\n            TransactionManager.Instance.TransactionTaskDone()\n\n    resumen = resumir(auditoria.filas)\n    total = resumen[-1]\n    partes = [\n        \"Modelo: %s\" % doc.Title,\n        \"Modo: %s\" % (\"CORRECCIÓN\" if escribir else \"AUDITORÍA (sin cambios)\"),\n        \"Reglas aplicadas: %d\" % len(reglas),\n        \"Evaluaciones: %s\" % total[1],\n        \"Cumplimiento global: %s%%\" % total[-1],\n        \"Corregidos: %s | Pendientes: %s | Fallas: %s | Omitidos: %s | Errores: %s\" % tuple(total[3:8]),\n    ]\n    if errores_reglas:\n        partes.append(\"Reglas descartadas: %d (ver NODO 01)\" % len(errores_reglas))\n    if estado_vista:\n        partes.append(estado_vista)\n    return [[ENCABEZADO] + auditoria.filas, resumen, \"\\n\".join(partes), doc.Title]\n\n\n# --- Punto de entrada del nodo Python de Dynamo --------------------------\nif \"IN\" in globals():\n    OUT = ejecutar(IN[0], IN[1], IN[2])  # noqa: F821\n",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "03d073c4c81d5079adcf851fb273c5f0",
+          "Name": "IN[0]",
+          "Description": "Salida NODO 01",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "cd248b41a684561c924adb153d803d9c",
+          "Name": "IN[1]",
+          "Description": "Escribir (bool)",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "13714d1984a059068dbdaadfd776710d",
+          "Name": "IN[2]",
+          "Description": "Resaltar (bool)",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "94826bc55efd552693ab044c125eb5bc",
+          "Name": "OUT",
+          "Description": "Resultado del script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Ejecuta un script de Python incrustado.",
+      "Id": "a23f73541c6556c5a94a3f4f1239681d",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "# -*- coding: utf-8 -*-\n\"\"\"\nNODO 03 - EXPORTAR REPORTE\n==========================\nRutina QA/QC de parámetros y nomenclatura - EC2 MBIM301\n\nEntradas\n    IN[0]  salida completa del NODO 02: [tabla, resumen, mensaje, proyecto]\n    IN[1]  carpeta de salida (str)\n\nSalida\n    OUT = [ruta_detalle, ruta_resumen]  o un texto de error\n\nGenera dos CSV con separador ';' y codificación UTF-8 con BOM, para que\nExcel en configuración regional Perú/España los abra directamente con\ntildes y columnas correctas. El nombre incluye fecha y hora: cada\nejecución deja trazabilidad y nunca sobrescribe un reporte anterior.\n\"\"\"\nimport csv\nimport datetime\nimport io\nimport os\nimport re\n\n\ndef nombre_seguro(texto):\n    texto = re.sub(r\"\\.rvt$\", \"\", texto or \"modelo\", flags=re.I)\n    return re.sub(r\"[^A-Za-z0-9_-]+\", \"_\", texto).strip(\"_\")[:60] or \"modelo\"\n\n\ndef escribir_csv(ruta, filas):\n    with io.open(ruta, \"w\", encoding=\"utf-8-sig\", newline=\"\") as f:\n        w = csv.writer(f, delimiter=\";\")\n        for fila in filas:\n            w.writerow([\"\" if v is None else v for v in fila])\n\n\ndef ejecutar(salida_nodo02, carpeta, ahora=None):\n    if not salida_nodo02 or len(salida_nodo02) < 4:\n        return \"Sin datos del NODO 02: revise la auditoría.\"\n    tabla, resumen, mensaje, proyecto = salida_nodo02[:4]\n    if len(tabla) <= 1:\n        return \"No se generó reporte: la auditoría no evaluó ningún elemento. \" + str(mensaje)\n    if not carpeta:\n        return \"Indique la carpeta de salida.\"\n    carpeta = str(carpeta)\n    try:\n        if not os.path.isdir(carpeta):\n            os.makedirs(carpeta)\n        sello = (ahora or datetime.datetime.now()).strftime(\"%Y%m%d_%H%M%S\")\n        base = os.path.join(carpeta, \"QAQC_%s_%s\" % (nombre_seguro(proyecto), sello))\n        ruta_detalle, ruta_resumen = base + \"_detalle.csv\", base + \"_resumen.csv\"\n        escribir_csv(ruta_detalle, tabla)\n        escribir_csv(ruta_resumen, resumen)\n        return [ruta_detalle, ruta_resumen]\n    except (IOError, OSError) as ex:\n        return \"No se pudo escribir el reporte (¿archivo abierto en Excel o carpeta sin permisos?): %s\" % ex\n\n\n# --- Punto de entrada del nodo Python de Dynamo --------------------------\nif \"IN\" in globals():\n    OUT = ejecutar(IN[0], IN[1])  # noqa: F821\n",
+      "Engine": "CPython3",
+      "EngineName": "CPython3",
+      "VariableInputPorts": true,
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "6d0e94e4f8715cbeb0c59d286309fb15",
+          "Name": "IN[0]",
+          "Description": "Salida NODO 02",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "41cf556957fe5dc1bc6e9902bf0a2837",
+          "Name": "IN[1]",
+          "Description": "Carpeta de salida",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "b25be7742e255782aeee990dc1bbd93d",
+          "Name": "OUT",
+          "Description": "Resultado del script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Ejecuta un script de Python incrustado.",
+      "Id": "c3fb0eea75fd5d70b65a9c21fa9f14cc",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "resultado[2];\nresultado[1];",
+      "Inputs": [
+        {
+          "Id": "d3dffe18aef6503b97b8b2f2e81c8d5c",
+          "Name": "resultado",
+          "Description": "resultado",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "e8d7c821210b5b7fa6695d581da698c5",
+          "Name": "",
+          "Description": "Valor de la expresión en la línea 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "af0ca8fb4598553096da25dfcdcc95a1",
+          "Name": "",
+          "Description": "Valor de la expresión en la línea 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Separa mensaje y resumen",
+      "Replication": "Disabled",
+      "Id": "00ea67f533845fad8846c7d4ac9991f7"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "WatchWidth": 480,
+      "WatchHeight": 300,
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "e1df5d47335f5105bc7357002f8eeb1e",
+          "Name": "",
+          "Description": "Nodo del que se muestra la salida",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "a50517c857e055e5af11e6c5e1192cc9",
+          "Name": "",
+          "Description": "Salida del nodo",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Visualiza la salida de un nodo",
+      "Id": "ff74cec9d7005e4d981b8281a4c0300b",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "WatchWidth": 520,
+      "WatchHeight": 200,
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "d784b1fa45a756a7941b0ea09d93345a",
+          "Name": "",
+          "Description": "Nodo del que se muestra la salida",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "fc910648096d59b1a02ef5fc709ceeb2",
+          "Name": "",
+          "Description": "Salida del nodo",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Visualiza la salida de un nodo",
+      "Id": "bde8095280fb517fa7d4a6a52cd6c5cb",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "WatchWidth": 620,
+      "WatchHeight": 300,
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "68f350e29ffd573693328f2a994add30",
+          "Name": "",
+          "Description": "Nodo del que se muestra la salida",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d97873b90f5156b888316c6697230435",
+          "Name": "",
+          "Description": "Salida del nodo",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Visualiza la salida de un nodo",
+      "Id": "3115b83aa97050daa2d1f9ee0d01a066",
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "WatchWidth": 520,
+      "WatchHeight": 120,
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "c3482ee75c1f5881a2fccabbcdaed71f",
+          "Name": "",
+          "Description": "Nodo del que se muestra la salida",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "85506d57faa856209fb5f51ce5a410c8",
+          "Name": "",
+          "Description": "Salida del nodo",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Description": "Visualiza la salida de un nodo",
+      "Id": "a861c388b7ef5171bd3b92bce1c006f0",
+      "Replication": "Disabled"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "d11d8a98337e5bc18eae37aa6e025955",
+      "End": "8574527ee8e05ba582bc90ab804ddac1",
+      "Id": "cb3973c7919553e88ea79d72ca950fde",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "6a076fbf092055ae8c327af228f39bac",
+      "End": "e1df5d47335f5105bc7357002f8eeb1e",
+      "Id": "af553b919ad553b6a38ebac75eb0cfc8",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "6a076fbf092055ae8c327af228f39bac",
+      "End": "03d073c4c81d5079adcf851fb273c5f0",
+      "Id": "00d4fad7c79c58f0a3e1b9bfc21ac37c",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "768228fc4f975116b99a1a7a225e3e48",
+      "End": "cd248b41a684561c924adb153d803d9c",
+      "Id": "09cacb5a67e253908380940f2eb08ad5",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "b3cd7a5ca25556109b678bc4727c19a7",
+      "End": "13714d1984a059068dbdaadfd776710d",
+      "Id": "4e0a0469b87b54b49123047c8820e53c",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "94826bc55efd552693ab044c125eb5bc",
+      "End": "6d0e94e4f8715cbeb0c59d286309fb15",
+      "Id": "31c0073596945cabbe6d0318f3741e4a",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "ba10667dd73a5deca035c8ecf52a9e09",
+      "End": "41cf556957fe5dc1bc6e9902bf0a2837",
+      "Id": "5c66320e390f5d9e883b87065bcf700f",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "b25be7742e255782aeee990dc1bbd93d",
+      "End": "c3482ee75c1f5881a2fccabbcdaed71f",
+      "Id": "aa52514c892e50ba89cbf23561047dee",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "94826bc55efd552693ab044c125eb5bc",
+      "End": "d3dffe18aef6503b97b8b2f2e81c8d5c",
+      "Id": "8275c6af7c1b5e8b8cc18f34079f09fa",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "e8d7c821210b5b7fa6695d581da698c5",
+      "End": "d784b1fa45a756a7941b0ea09d93345a",
+      "Id": "39ca217ce5745fdf9926b7995331b856",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "af0ca8fb4598553096da25dfcdcc95a1",
+      "End": "68f350e29ffd573693328f2a994add30",
+      "Id": "c7bf03cfa05858c69e0626cf32ad7eb0",
+      "IsHidden": "False"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Author": "Grupo EC2 · MBIM301",
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": false,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "3.3.0.6316",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "_Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "ConnectorPins": [],
+    "NodeViews": [
+      {
+        "Id": "0723afde01885782a0559ef208a325f9",
+        "Name": "1 · Archivo de reglas (CSV)",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 0,
+        "Y": 0
+      },
+      {
+        "Id": "18dd0421699e5bbebbc1381c77a9a15e",
+        "Name": "2 · Escribir en el modelo (False = solo auditar)",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 0,
+        "Y": 170
+      },
+      {
+        "Id": "592782ffe2a25a4a9807f31094d5b2ac",
+        "Name": "3 · Resaltar en vista activa",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 0,
+        "Y": 300
+      },
+      {
+        "Id": "dd0f435ce4bf5e8dbedff51eba086bdb",
+        "Name": "4 · Carpeta de reportes",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 0,
+        "Y": 430
+      },
+      {
+        "Id": "352f4f6a6571559aa7f1a4df8d769754",
+        "Name": "PY 01 · Leer y validar reglas",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 520,
+        "Y": 0
+      },
+      {
+        "Id": "a23f73541c6556c5a94a3f4f1239681d",
+        "Name": "PY 02 · Auditar y corregir (Revit API)",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 1100,
+        "Y": 150
+      },
+      {
+        "Id": "c3fb0eea75fd5d70b65a9c21fa9f14cc",
+        "Name": "PY 03 · Exportar reporte CSV",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 1700,
+        "Y": 150
+      },
+      {
+        "Id": "00ea67f533845fad8846c7d4ac9991f7",
+        "Name": "Separar mensaje / resumen",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 1700,
+        "Y": 450
+      },
+      {
+        "Id": "ff74cec9d7005e4d981b8281a4c0300b",
+        "Name": "Reglas válidas / errores",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 520,
+        "Y": 230
+      },
+      {
+        "Id": "bde8095280fb517fa7d4a6a52cd6c5cb",
+        "Name": "RESULTADO",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 2100,
+        "Y": 400
+      },
+      {
+        "Id": "3115b83aa97050daa2d1f9ee0d01a066",
+        "Name": "Cumplimiento por regla",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 2100,
+        "Y": 650
+      },
+      {
+        "Id": "a861c388b7ef5171bd3b92bce1c006f0",
+        "Name": "Reportes generados",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "ShowGeometry": false,
+        "X": 2250,
+        "Y": 150
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "a86ea1c183de547ab9eb9c61a47f70b7",
+        "Title": "Estos 4 nodos son los únicos que edita el usuario (aparecen en Dynamo Player). Ejecutar SIEMPRE primero con 'Escribir' = False, revisar el reporte y luego pasar a True.",
+        "DescriptionText": null,
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [],
+        "HasNestedGroups": false,
+        "Left": 0,
+        "Top": 560,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "a808b649b49051178751455353bbdb72",
+        "Title": "No toca el modelo. Si una regla está mal escrita se descarta aquí y se lista en el Watch; las demás siguen. Formato de reglas: ver README y config/reglas_qaqc.csv.",
+        "DescriptionText": null,
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [],
+        "HasNestedGroups": false,
+        "Left": 520,
+        "Top": 560,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "0fce8f0eef4159899acaae05c5b4c100",
+        "Title": "Único nodo que escribe en Revit, dentro de una sola transacción. Controla: parámetro inexistente, solo lectura, elementos en grupos, elementos tomados por otro usuario, parámetros de tipo (se escriben una vez) y errores de la API por elemento.",
+        "DescriptionText": null,
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [],
+        "HasNestedGroups": false,
+        "Left": 1100,
+        "Top": 360,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "11c2f30d1c7a5783b4a5524efbc24cc6",
+        "Title": "Genera _detalle.csv y _resumen.csv con fecha y hora (no sobrescribe). Separador ';' para Excel en configuración regional Perú.",
+        "DescriptionText": null,
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [],
+        "HasNestedGroups": false,
+        "Left": 1700,
+        "Top": 620,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "315b0a9c96d75669b16d73c68a184908",
+        "Title": "1 · ENTRADAS",
+        "DescriptionText": "Parámetros de la rutina (Dynamo Player)",
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [
+          "0723afde01885782a0559ef208a325f9",
+          "18dd0421699e5bbebbc1381c77a9a15e",
+          "592782ffe2a25a4a9807f31094d5b2ac",
+          "dd0f435ce4bf5e8dbedff51eba086bdb",
+          "a86ea1c183de547ab9eb9c61a47f70b7"
+        ],
+        "HasNestedGroups": false,
+        "Left": -30,
+        "Top": -120,
+        "Width": 460,
+        "Height": 800,
+        "FontSize": 30.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": -40,
+        "InitialHeight": 720,
+        "TextblockHeight": 70.0,
+        "Background": "#FFB9F9E1"
+      },
+      {
+        "Id": "7a1954b7a7065d57b206f0f487aa91de",
+        "Title": "2 · LECTURA Y VALIDACIÓN DE REGLAS",
+        "DescriptionText": "Python · sin Revit API",
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [
+          "352f4f6a6571559aa7f1a4df8d769754",
+          "ff74cec9d7005e4d981b8281a4c0300b",
+          "a808b649b49051178751455353bbdb72"
+        ],
+        "HasNestedGroups": false,
+        "Left": 490,
+        "Top": -120,
+        "Width": 540,
+        "Height": 800,
+        "FontSize": 30.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": -40,
+        "InitialHeight": 720,
+        "TextblockHeight": 70.0,
+        "Background": "#FFFFC999"
+      },
+      {
+        "Id": "e0ce14c6112059f084115cac3795d273",
+        "Title": "3 · AUDITORÍA Y CORRECCIÓN",
+        "DescriptionText": "Python · Revit API · transacción única",
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [
+          "a23f73541c6556c5a94a3f4f1239681d",
+          "0fce8f0eef4159899acaae05c5b4c100"
+        ],
+        "HasNestedGroups": false,
+        "Left": 1070,
+        "Top": 30,
+        "Width": 520,
+        "Height": 500,
+        "FontSize": 30.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 110,
+        "InitialHeight": 420,
+        "TextblockHeight": 70.0,
+        "Background": "#FFFFAA45"
+      },
+      {
+        "Id": "208636964b6c593f8ac400384b902d80",
+        "Title": "4 · REPORTE Y RESULTADOS",
+        "DescriptionText": "Python · exportación CSV + Watch",
+        "IsExpanded": true,
+        "WidthAdjustment": 0.0,
+        "HeightAdjustment": 0.0,
+        "Nodes": [
+          "c3fb0eea75fd5d70b65a9c21fa9f14cc",
+          "00ea67f533845fad8846c7d4ac9991f7",
+          "bde8095280fb517fa7d4a6a52cd6c5cb",
+          "3115b83aa97050daa2d1f9ee0d01a066",
+          "a861c388b7ef5171bd3b92bce1c006f0",
+          "11c2f30d1c7a5783b4a5524efbc24cc6"
+        ],
+        "HasNestedGroups": false,
+        "Left": 1670,
+        "Top": 30,
+        "Width": 1100,
+        "Height": 950,
+        "FontSize": 30.0,
+        "GroupStyleId": "00000000-0000-0000-0000-000000000000",
+        "InitialTop": 110,
+        "InitialHeight": 870,
+        "TextblockHeight": 70.0,
+        "Background": "#FFA4E1FF"
+      }
+    ],
+    "X": 60.0,
+    "Y": 220.0,
+    "Zoom": 0.45
+  }
+}

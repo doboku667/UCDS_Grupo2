@@ -1,0 +1,9 @@
+id;tipo;categoria;parametro;operador;valor;filtro_parametro;filtro_operador;filtro_valor;sobrescribir;severidad;descripcion
+R01;ASIGNAR;OST_Walls;BIP:FIRE_RATING;FIJAR;2 h;TIPO:NOMBRE;REGEX;(?i)(concre|hormig|CON_);NO;ALTA;Muros de concreto sin resistencia al fuego: asignar 2 h (hallazgo EC1)
+R02;ASIGNAR;OST_Walls;BIP:FIRE_RATING;FIJAR;1 h;TIPO:NOMBRE;REGEX;(?i)(gypsum|drywall|yeso|DRY_);NO;MEDIA;Tabiques de yeso sin resistencia al fuego: asignar 1 h
+R03;VERIFICAR;OST_Walls;BIP:FIRE_RATING;NO_VACIO;;;;;NO;ALTA;Todo muro debe declarar resistencia al fuego (ISO 19650 - requisito de información)
+R04;VERIFICAR;OST_Walls;TIPO:NOMBRE;REGEX;^MUR_(CON|ALB|DRY)_\d{2,3}(mm|cm)(_.+)?$;;;;NO;MEDIA;Nomenclatura de tipos de muro: MUR_<material>_<espesor><unidad>
+R05;VERIFICAR;OST_Floors;TIPO:NOMBRE;REGEX;^LOS_(CON|ALI|PRE)_\d{2,3}(mm|cm)(_.+)?$;;;;NO;MEDIA;Nomenclatura de tipos de losa: LOS_<sistema>_<espesor><unidad>
+R06;VERIFICAR;OST_StructuralColumns;BIP:STRUCTURAL_MATERIAL_PARAM;NO_VACIO;;;;;NO;ALTA;Columnas con material estructural asignado (requerido para metrados 5D)
+R07;VERIFICAR;OST_StructuralFraming;BIP:ALL_MODEL_MARK;NO_VACIO;;;;;NO;MEDIA;Vigas con Marca (Mark) para trazabilidad en planos y metrados
+R08;VERIFICAR;OST_Doors;BIP:ALL_MODEL_MARK;NO_VACIO;;;;;NO;BAJA;Puertas con Marca (Mark) para cuadro de vanos
